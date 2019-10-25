@@ -147,7 +147,33 @@ function createMeshVertices(M, N, uvToShape, arg) {
     // THE ONLY SIGNIFICANT DIFFERENCE IS THAT YOU NEED TO PASS IN
     // arg AS A THIRD ARGUMENT WHEN YOU CALL uvToShape().
 
-    return [ 0,0,0, 0,0,0, 0,0 ]; // THIS LINE IS JUST A DUMMY PLACEHOLDER.
+    // M column, N row
+    if (M == 1 || N == 1) throw "Wrong column or row!";
+    let vertices = [];
+    let addVertex = (u, v) => {
+        let a = uvToShape(u, v, arg);
+        if (a){
+        for (let i = 0 ; i < a.length ; i++)
+            vertices.push(a[i]);}
+    }
+
+    let du = 1. / (M - 1);
+    let dv = 1. / (N - 1);
+    for (let row = 0; row < N - 1; row++) {
+        let u0 = row % 2 == 0 ? 1 : 0;
+        let sign = row % 2 == 0 ? -1 : 1;
+        let vBot = row * dv;
+        let vTop = (row + 1) * dv;
+        if (row == 0) addVertex(u0, vBot);
+        addVertex(u0, vTop);
+        // let numSteps = M - 1;
+        for (let col = 1; col < M; col++) {
+            let u = u0 + sign * col * du;
+            addVertex(u, vBot);
+            addVertex(u, vTop);
+        }
+    }
+    return vertices;
 }
 
 // FOR uvCubicCurvesRibbon(), arg IS IN THE BELOW FORM:
@@ -155,8 +181,8 @@ function createMeshVertices(M, N, uvToShape, arg) {
 // {
 //    width: width,
 //    data: [
-//       [ [a0x,b0x,c0x,d0x], [a0y,b0y,c0y,d0y] [a0z,b0z,c0z,d0z] ], // CURVE 0
-//       [ [a1x,b1x,c1x,d1x], [a1y,b1y,c1y,d1y] [a1z,b1z,c1z,d1z] ], // CURVE 1
+//       [ [a0x,b0x,c0x,d0x], [a0y,b0y,c0y,d0y], [a0z,b0z,c0z,d0z] ], // CURVE 0
+//       [ [a1x,b1x,c1x,d1x], [a1y,b1y,c1y,d1y], [a1z,b1z,c1z,d1z] ], // CURVE 1
 //       ...                                                         // ...
 //    ]
 // }
@@ -185,6 +211,34 @@ let uvToCubicCurvesRibbon = (u, v, arg) => {
     // COMPUTE A CORRECT VALUE FOR THE SURFACE NORMAL AT EACH VERTEX.
     // IF YOU CAN'T FIGURE OUT HOW TO PRODUCE A RIBBON THAT VARIES IN Z,
     // IT IS OK TO CREATE A RIBBON WHERE ALL THE Z VALUES ARE THE SAME.
+    
+    let numCurves = arg.data.length;
+    let curveIndex = u == 1 ? numCurves - 1 : Math.floor(u * numCurves);
+    let t = u * numCurves - curveIndex;
+    let curveCoefficients = arg.data[curveIndex]; // [ [ax,bx,cx,dx], [ay,by,cy,dy], [az,bz,cz,dz] ]
+    let calculateXYZ = (coef, t) => {
+        let xyz = [];
+        for (let i = 0; i < 3; i++) {
+            xyz.push(coef[i][0]*t*t*t +
+                     coef[i][1]*t*t +
+                     coef[i][2]*t +
+                     coef[i][3]);
+        }
+        return xyz;
+    }
+    let p0 = calculateXYZ(curveCoefficients, t);
+    let p1 = calculateXYZ(curveCoefficients, t+0.001);
+    let dp = subtract(p1, p0); // [dx, dy, 0]
+    let vDirNorm = normalize([-dp[1], dp[0]]); // [-dy, dx]
+    let width = arg.width;
+    
+    let x = p0[0] + vDirNorm[0] * (v - 0.5) * width;
+    let y = p0[1] + vDirNorm[1] * (v - 0.5) * width;
+    let z = p0[2];
+    let nx = 0;
+    let ny = 0;
+    let nz = 1;
+    return [x, y ,z, nx, ny, nz, u, v];
 }
 
 
