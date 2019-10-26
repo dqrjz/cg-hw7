@@ -284,7 +284,7 @@ let uvToCubicPatch = (u, v, arg) => {
         // where vec1 and vec2 are a 1x4 vectors and mat is a 4x4 matrix.
         let ret = 0;
         for (let i = 0; i < 4; i++) {
-            ret += vec1[i] * (coef[i]*vec2[0] + coef[i+4]*vec2[1] + coef[i+8]*vec2[2] + coef[i+12]*vec2[3]);
+            ret += vec1[i] * (mat[i]*vec2[0] + mat[i+4]*vec2[1] + mat[i+8]*vec2[2] + mat[i+12]*vec2[3]);
         }
         return ret;
     }
