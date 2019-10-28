@@ -38,8 +38,8 @@ void main() {
 
     Ldir[0] = normalize(vec3(1.,1.,2.));
     Ldir[1] = normalize(vec3(-1.,-1.,-1.));
-    Lrgb[0] = vec3(.3,.3,1.);
-    Lrgb[1] = vec3(.6,.3,.1);
+    Lrgb[0] = vec3(.3,.3,.3);
+    Lrgb[1] = vec3(.6,.6,.6);
 
     vec3 normal = normalize(vNor);
 
