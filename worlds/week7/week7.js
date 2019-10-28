@@ -886,41 +886,66 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       
       /////// tails ///////
       let tailsFrontP = [];
+      let c = Math.cos(7 *state.time);
+      let s = c > .5 ? .8 : (c < -.5 ? -.4 : .4);
+      // s = 1;
       tailsFrontP[0] = [
-        [ -.6, -.65, -.7,  -.75], // A.x B.x C.x D.x
-        [  0,  .2,  0,  0.2], // A.y B.y C.y D.y
+        [ -.53, -.62, -.65, -.7], // A.x B.x C.x D.x
+        [   0, .05*s,  .05*s,   0], // A.y B.y C.y D.y
         [  0, 0, 0, 0]  // A.z B.z C.z D.z
       ];
+      tailsFrontP[1] = [
+        [ -.7, -.75, -.75, -.85], // A.x B.x C.x D.x
+        [   0, -.05*s,  .1*s,   0], // A.y B.y C.y D.y
+        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+      ];
+      tailsFrontP[2] = [
+        [ -.85, -.95, -.95, -1], // A.x B.x C.x D.x
+        [   0, -.1*s,  .1*s, .05*s], // A.y B.y C.y D.y
+        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+      ];
+      tailsFrontP[3] = [
+        [ -.53, -.62, -.65, -.7], // A.x B.x C.x D.x
+        [  0.18, .18-.05*s,  .18-.05*s,  .18+.05*s], // A.y B.y C.y D.y
+        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+      ];
+      
       let tailColor = [.5, .02, .03];
-      m.save();
-      let tailsFront = [];
-      let tailsBack = [];
-      for (let i = 0; i < tailsFrontP.length; i++) {
+      
+      for (let theta = - Math.PI/3; theta < Math.PI/3; theta += Math.PI/7) {
         m.save();
-        tailsFront[i] = createMeshVertices(32, 2, uvToCubicCurvesRibbon,
-          {
-            width: 0.03,
-            data: [
-               toCubicCurveCoefficients(BezierBasisMatrix, tailsFrontP[i])
-            ]
-          }
-        );
-        drawShape(tailColor, gl.TRIANGLE_STRIP, tailsFront[i]);
-        m.restore();
-        m.save();
-        m.rotateY(Math.PI);
-        tailsBack[i] = createMeshVertices(32, 2, uvToCubicCurvesRibbon,
-          {
-            width: 0.03,
-            data: [
-               toCubicCurveCoefficients(BezierBasisMatrix, bloodVinesPFrontToBack(tailsFrontP[i]))
-            ]
-          }
-        );
-        drawShape(tailColor, gl.TRIANGLE_STRIP, tailsBack[i]);
+        m.rotateZ(theta);
+        m.translate(0, -0.14, 0);
+        let tailsFront = [];
+        let tailsBack = [];
+        for (let i = 0; i < tailsFrontP.length; i++) {
+          m.save();
+          tailsFront[i] = createMeshVertices(32, 2, uvToCubicCurvesRibbon,
+            {
+              width: i <= 2 ? 0.03 : 0.025,
+              data: [
+                 toCubicCurveCoefficients(BezierBasisMatrix, tailsFrontP[i])
+              ]
+            }
+          );
+          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsFront[i]);
+          m.restore();
+          m.save();
+          m.rotateY(Math.PI);
+          tailsBack[i] = createMeshVertices(32, 2, uvToCubicCurvesRibbon,
+            {
+              width: i <= 2 ? 0.03 : 0.025,
+              data: [
+                 toCubicCurveCoefficients(BezierBasisMatrix, bloodVinesPFrontToBack(tailsFrontP[i]))
+              ]
+            }
+          );
+          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsBack[i]);
+          m.restore();
+        }
         m.restore();
       }
-      m.restore();
+      
       
     m.restore();
 }
