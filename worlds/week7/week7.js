@@ -313,7 +313,7 @@ async function setup(state) {
     hotReloadFile(getPath('week7.js'));
 
     const images = await imgutil.loadImagesPromise([
-       getPath("textures/brick.png"),
+       getPath("textures/blood.jpg"),
        getPath("textures/polkadots.png"),
        getPath("textures/night_sky.jpg"),
     ]);
@@ -867,7 +867,7 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
             ]
           }
         );
-        drawShape(bloodVineColor, gl.TRIANGLE_STRIP, bloodVinesFront[i]);
+        drawShape(bloodVineColor, gl.TRIANGLE_STRIP, bloodVinesFront[i], 0);
         m.restore();
         m.save();
         m.rotateY(Math.PI);
@@ -879,7 +879,7 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
             ]
           }
         );
-        drawShape(bloodVineColor, gl.TRIANGLE_STRIP, bloodVinesBack[i]);
+        drawShape(bloodVineColor, gl.TRIANGLE_STRIP, bloodVinesBack[i], 0);
         m.restore();
       }
       m.restore();
@@ -928,7 +928,7 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
               ]
             }
           );
-          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsFront[i]);
+          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsFront[i], 0);
           m.restore();
           m.save();
           m.rotateY(Math.PI);
@@ -940,7 +940,7 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
               ]
             }
           );
-          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsBack[i]);
+          drawShape(tailColor, gl.TRIANGLE_STRIP, tailsBack[i], 0);
           m.restore();
         }
         m.restore();

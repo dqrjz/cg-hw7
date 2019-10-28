@@ -33,13 +33,13 @@ void main() {
 
     vec3 ambient = .1 * uColor;
     vec3 diffuse = .5 * uColor;
-    vec3 specular = vec3(.4,.4,.4);
+    vec3 specular = vec3(.6,.6,.6);
     float p = 30.;
 
-    Ldir[0] = normalize(vec3(1.,1.,2.));
-    Ldir[1] = normalize(vec3(-1.,-1.,-1.));
-    Lrgb[0] = vec3(.3,.3,.3);
-    Lrgb[1] = vec3(.6,.6,.6);
+    Ldir[0] = normalize(vec3(-2.,1.,3.));
+    Ldir[1] = normalize(vec3( 1.,0.,2.));
+    Lrgb[0] = vec3(.5,.4,.4);
+    Lrgb[1] = vec3(.4,.4,.4);
 
     vec3 normal = normalize(vNor);
 
