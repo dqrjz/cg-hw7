@@ -391,6 +391,26 @@ async function setup(state) {
                 gl.uniform1i(state.uTex0Loc, 0);
                 gl.uniform1i(state.uTex1Loc, 1);
                 gl.uniform1i(state.uTex2Loc, 2);
+                
+                state.cameraLoc           = gl.getUniformLocation(program, 'camera');
+                
+                var NL = 2;
+                state.uLightsLoc = [];
+                for (var i = 0; i < NL; i++) {
+                    state.uLightsLoc[i] = {};
+                    state.uLightsLoc[i].src = gl.getUniformLocation(program, 'uLights['+i+'].src');
+                    state.uLightsLoc[i].col = gl.getUniformLocation(program, 'uLights['+i+'].col');
+                }
+
+                var NS = 1;
+                state.uMaterialsLoc = [];
+                for (var i = 0; i < NS; i++) {
+                    state.uMaterialsLoc[i] = {};
+                    state.uMaterialsLoc[i].ambient    = gl.getUniformLocation(program, 'uMaterials['+i+'].ambient');
+                    state.uMaterialsLoc[i].diffuse    = gl.getUniformLocation(program, 'uMaterials['+i+'].diffuse');
+                    state.uMaterialsLoc[i].specular   = gl.getUniformLocation(program, 'uMaterials['+i+'].specular');
+                    state.uMaterialsLoc[i].power      = gl.getUniformLocation(program, 'uMaterials['+i+'].power');
+                }
             } 
         },
         {
@@ -482,6 +502,16 @@ function onStartFrame(t, state) {
 
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);  // CULL FACES THAT ARE VISIBLY CLOCKWISE.
+    
+    // camera
+    gl.uniform3fv(state.cameraLoc, [0., 0., 5.]);
+    
+    // Lights
+    gl.uniform3fv(state.uLightsLoc[0].src, [-1.,1.,1.]);
+    gl.uniform3fv(state.uLightsLoc[0].col, [.5,.4,.4]);
+
+    gl.uniform3fv(state.uLightsLoc[1].src, [1.,1.,-2.]);
+    gl.uniform3fv(state.uLightsLoc[1].col, [.4,.4,.4]);
 }
 
 function onDraw(t, projMat, viewMat, state, eyeIdx) {
@@ -535,6 +565,10 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
         m.rotateY(i);
         m.translate(0,0,-10.35);
         m.scale(6,6,6);
+        gl.uniform3fv(state.uMaterialsLoc[0].ambient , [1,1,1]);
+        gl.uniform3fv(state.uMaterialsLoc[0].diffuse , [.1,.1,.1]);
+        gl.uniform3fv(state.uMaterialsLoc[0].specular, [.1,.1,.1]);
+        gl.uniform1f (state.uMaterialsLoc[0].power   , 15.);
         drawShape([1,1,1], gl.TRIANGLE_STRIP, background, 2);
         m.restore();
       }
@@ -596,6 +630,10 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       );
 
       m.scale(.6,.6,.6);
+      gl.uniform3fv(state.uMaterialsLoc[0].ambient , [.6,.6,.6]);
+      gl.uniform3fv(state.uMaterialsLoc[0].diffuse , [.9,.9,.9]);
+      gl.uniform3fv(state.uMaterialsLoc[0].specular, [.8,.8,.8]);
+      gl.uniform1f (state.uMaterialsLoc[0].power   , 2.);
       drawShape([1,1,1], gl.TRIANGLE_STRIP, eyeFront);
       drawShape([1,1,1], gl.TRIANGLE_STRIP, eyeBack);
       
@@ -629,6 +667,10 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       );
 
       let mouthColor = [.8,.07,.08]
+      gl.uniform3fv(state.uMaterialsLoc[0].ambient , [.16,.007,.008]);
+      gl.uniform3fv(state.uMaterialsLoc[0].diffuse , [.4,.035,.04]);
+      gl.uniform3fv(state.uMaterialsLoc[0].specular, [.6,.6,.6]);
+      gl.uniform1f (state.uMaterialsLoc[0].power   , 30.);
       drawShape(mouthColor, gl.TRIANGLE_STRIP, mouthFront);
       drawShape(mouthColor, gl.TRIANGLE_STRIP, mouthBack);
       m.restore();
@@ -662,7 +704,11 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
          toCubicPatchCoefficients(BezierBasisMatrix, toothBackP)
       );
       
-      let toothColor = [.18, .13, 0.05];
+      let toothColor = [.18, .13, .05];
+      gl.uniform3fv(state.uMaterialsLoc[0].ambient , [.09,.065,.025]);
+      gl.uniform3fv(state.uMaterialsLoc[0].diffuse , [.18, .13, .05]);
+      gl.uniform3fv(state.uMaterialsLoc[0].specular, [.6,.6,.6]);
+      gl.uniform1f (state.uMaterialsLoc[0].power   , 3.);
       for (let updown = -1; updown <= 1; updown += 2) {
         m.save();
         m.translate(.27,updown*.21,0);
@@ -813,6 +859,11 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
                   [ .08,   0,  0, -.05], // A.y B.y C.y D.y
                   [ .3, .38, .45,  .4]  // A.z B.z C.z D.z
       ];
+      bloodVinesFrontP[23] = [
+                  [-.15, -.1,-.05,  .1], // A.x B.x C.x D.x
+                  [ .44, .42, .42, .46], // A.y B.y C.y D.y
+                  [ .14, .18,  .2, .01]  // A.z B.z C.z D.z
+      ];
       
       let bloodVinesPFrontToBack = fP => {
         let bP = [];
@@ -830,6 +881,10 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       }
       
       let bloodVineColor = [.5, .02, .03];
+      gl.uniform3fv(state.uMaterialsLoc[0].ambient , [.25, .01, .015]);
+      gl.uniform3fv(state.uMaterialsLoc[0].diffuse , [.5, .02, .03]);
+      gl.uniform3fv(state.uMaterialsLoc[0].specular, [.6,.6,.6]);
+      gl.uniform1f (state.uMaterialsLoc[0].power   , 10.);
       m.save();
       let bloodVinesFront = [];
       let bloodVinesBack = [];
@@ -865,27 +920,27 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       let c = Math.cos(7 *state.time);
       let s = c > .5 ? .8 : (c < -.5 ? -.4 : .4);
       tailsFrontP[0] = [
-        [ -.53, -.62, -.65, -.7], // A.x B.x C.x D.x
-        [   0, .05*s,  .05*s,   0], // A.y B.y C.y D.y
-        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+        [-.53,  -.62,  -.65,  -.7], // A.x B.x C.x D.x
+        [   0, .05*s, .05*s,    0], // A.y B.y C.y D.y
+        [   0,     0,     0,    0]  // A.z B.z C.z D.z
       ];
       tailsFrontP[1] = [
-        [ -.7, -.75, -.75, -.85], // A.x B.x C.x D.x
-        [   0, -.05*s,  .1*s,   0], // A.y B.y C.y D.y
-        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+        [ -.7,  -.75,  -.75, -.85], // A.x B.x C.x D.x
+        [   0,-.05*s,  .1*s,    0], // A.y B.y C.y D.y
+        [   0,     0,     0,    0]  // A.z B.z C.z D.z
       ];
       tailsFrontP[2] = [
-        [ -.85, -.95, -.95, -1], // A.x B.x C.x D.x
-        [   0, -.1*s,  .1*s, .05*s], // A.y B.y C.y D.y
-        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+        [-.85,  -.95,  -.95,   -1], // A.x B.x C.x D.x
+        [   0, -.1*s,  .1*s,.05*s], // A.y B.y C.y D.y
+        [   0,     0,     0,    0]  // A.z B.z C.z D.z
       ];
       tailsFrontP[3] = [
-        [ -.53, -.62, -.65, -.7], // A.x B.x C.x D.x
-        [  0.18, .18-.05*s,  .18-.05*s,  .18+.05*s], // A.y B.y C.y D.y
-        [  0, 0, 0, 0]  // A.z B.z C.z D.z
+        [-.53,  -.62,  -.65,  -.7], // A.x B.x C.x D.x
+        [ .18, .18-.05*s,  .18-.05*s,  .18+.05*s], // A.y B.y C.y D.y
+        [  0,      0,     0,    0]  // A.z B.z C.z D.z
       ];
       
-      let tailColor = [.5, .02, .03];
+      let tailColor = bloodVineColor;
       for (let theta = - Math.PI/3; theta < Math.PI/3; theta += Math.PI/7) {
         m.save();
         m.rotateZ(theta);

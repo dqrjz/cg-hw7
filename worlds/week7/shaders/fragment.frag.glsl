@@ -10,8 +10,11 @@ in vec3 vPos;          // POSITION IN SPACE
 in vec3 vNor;          // SURFACE NORMAL
 in vec2 vUV;           // U,V PARAMETRIC COORDINATES
 
-vec3 Ldir[2];
-vec3 Lrgb[2];
+////////////////////////////////////////////////////////////
+////    Eye of Cthulhu (Second Form) from Terraria     /////
+////  (https://terraria.gamepedia.com/Eye_of_Cthulhu)  /////
+////////////////////////////////////////////////////////////
+
 
 uniform int uTexIndex;
 
@@ -20,6 +23,71 @@ uniform sampler2D uTex1;
 uniform sampler2D uTex2;
 
 out vec4 fragColor;    // RESULT WILL GO HERE
+
+const int NL = 2;
+const int NS = 1;
+
+struct Light {
+    vec3 src;
+    vec3 col;
+};
+
+struct Ray {
+    vec3 src;
+    vec3 dir;
+};
+
+struct Material {
+  vec3  ambient;
+  vec3  diffuse;
+  vec3  specular;
+  float power;
+};
+
+uniform vec3 camera;
+uniform Light uLights[NL];
+uniform Material uMaterials[NS];
+
+
+Ray computeRay(vec3 src, vec3 dest) {
+    Ray r;
+    r.src = src;
+    r.dir = normalize(dest - src);
+    return r;
+}
+
+vec3 computeSurfaceNormal(vec3 P) {
+    return normalize(vNor);
+}
+
+Ray reflectRay(Ray R, vec3 N) {
+    Ray r;
+    r.src = R.src;
+    r.dir = normalize(2. * dot(N, R.dir) * N - R.dir);
+    return r;
+}
+
+// PHONG SHADING
+vec3 phongShading(vec3 P, int iS) {
+    Material M = uMaterials[iS];
+    vec3 N = computeSurfaceNormal(P);
+    vec3 color = M.ambient;
+    for(int i = 0;i < NL; i++) {
+        Ray L = computeRay(P, uLights[i].src);
+        Ray E = computeRay(P, camera); // E = -W
+        Ray R = reflectRay(L, N);
+        color += uLights[i].col * (M.diffuse * max(0., dot(N, L.dir)));
+    float ER = dot(E.dir, R.dir);
+    float spec;
+        if(ER > 0.) {
+            spec = max(0., exp(M.power * log(ER)));
+        } else {
+            spec = 0.;
+        }
+        color += uLights[i].col * M.specular * spec;
+    }
+    return color;
+}
 
 void main() {
     vec4 texture0 = texture(uTex0, vUV);
@@ -30,7 +98,7 @@ void main() {
     // because I threw together this example quickly.
     // You should probably continue to define lights on the CPU
     // as you have been doing in previous weeks.
-
+/*
     vec3 ambient = .1 * uColor;
     vec3 diffuse = .5 * uColor;
     vec3 specular = vec3(.6,.6,.6);
@@ -53,7 +121,9 @@ void main() {
        if (s > 0.)
           color += specular * pow(s, p) * Lrgb[i];
     }
-
+*/
+    vec3 color = phongShading(vPos, 0);
+    
     if (uCursor.z > 0. && min(abs(uCursor.x - vXY.x), abs(uCursor.y - vXY.y)) < .005)
           color *= 2.;
 
