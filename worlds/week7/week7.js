@@ -502,59 +502,48 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
     m.translate(0,0,-4);
     m.rotateY(state.turnAngle);
     m.translate(0,0,4);
-
-    let by = 1;
-
-    let S = .3 * Math.sin(state.time);
-
-    let hermiteCurveVertices = createMeshVertices(48, 2, uvToCubicCurvesRibbon,
-       {
-          width: .1,
-	  data: [
-	     toCubicCurveCoefficients(HermiteBasisMatrix, [
-                [ 0, 0,-3, 3], // P0.x P1.x R0.x R1.x
-                [-1, 0, 0, 0], // P0.y P1.y R0.y R1.y
-                [ 0,.4, 0, 0]  // P0.z P1.z R0.z R1.z
-             ]),
-	     toCubicCurveCoefficients(HermiteBasisMatrix, [
-                [ 0, .5,  3,  3], // P0.x P1.x R0.x R1.x
-                [ 0,  1,  0,  0], // P0.y P1.y R0.y R1.y
-                [.5,  0,  0,  0]  // P0.z P1.z R0.z R1.z
-             ]),
-	     toCubicCurveCoefficients(HermiteBasisMatrix, [
-                [.5, .5,  2, -2], // P0.x P1.x R0.x R1.x
-                [ 1, .2,  0,  0], // P0.y P1.y R0.y R1.y
-                [ 0,  0,  0,-.5]  // P0.z P1.z R0.z R1.z
-             ])
-          ]
-       }
-    );
-
-    let bezierCurveVertices = createMeshVertices(32, 2, uvToCubicCurvesRibbon,
-       {
-          width: 0.06,
-	  data: [
-             toCubicCurveCoefficients(BezierBasisMatrix, [
-                [ -1, -.6, -.3,  0], // A.x B.x C.x D.x
-                [  0,  by, -by,  0], // A.y B.y C.y D.y
-                [-.3,  .3,   0,-.1]  // A.z B.z C.z D.z
-             ]),
-             toCubicCurveCoefficients(BezierBasisMatrix, [
-                [  0, .3, .6,  1],    // A.x B.x C.x D.x
-                [  0, by,  0,  1],    // A.y B.y C.y D.y
-                [-.1,-.1,-.3,-.6]     // A.z B.z C.z D.z
-             ])
-          ]
-       }
-    );
-
-    // let st = 1 // 3 * state.time;
-    // let s0 = .7 * Math.sin(st);
-    // let s1 = .7 * Math.sin(st + 1);
-    // let s2 = .7 * Math.sin(st + 2);
-    // let s3 = .7 * Math.sin(st + 3);
     
-
+    /////// background ///////
+    let z = -.3;
+    let backgroundP = [
+      [
+        -1,-1/3, 1/3, 1,
+        -1,-1/3, 1/3, 1,
+        -1,-1/3, 1/3, 1,
+        -1,-1/3, 1/3, 1
+      ],
+      [
+        -1  ,-1.  ,-1  ,-1,
+        -1/3,-1/3,-1/3,-1/3,
+         1/3, 1/3, 1/3, 1/3,
+         1  , 1  , 1  , 1
+      ],
+      [
+        0,  z,  z,  0,
+        0,  z,  z,  0,
+        0,  z,  z,  0,
+        0,  z,  z,  0
+      ]
+    ];
+    let background = createMeshVertices(32, 32, uvToCubicPatch,
+       toCubicPatchCoefficients(BezierBasisMatrix, backgroundP)
+    );
+    m.save();
+    m.translate(0,0,-4);
+      for (let i = 0; i < 2*Math.PI; i += Math.PI/3){
+        m.save();
+        m.rotateY(i);
+        m.translate(0,0,-10.35);
+        m.scale(6,6,6);
+        drawShape([1,1,1], gl.TRIANGLE_STRIP, background, 2);
+        m.restore();
+      }
+    m.restore();
+    
+    /////// Eye of Cthulhu ///////
+    m.save();
+    m.translate(0,0,-4);
+    // helper function
     let frontToBack = fP => {
       let bP = [];
       let flip = M => {
@@ -576,116 +565,103 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       bP = [flip(fP[0]), flip(fP[1]), reverse(flip(fP[2]))];
       return bP;
     }
-    let eyeFrontP = [
-       [
-         -1, -1, .2, .5,
-         -1,-.9,-.3,-.1,
-         -1,-.9,-.3,-.1,
-         -1, -1, .2, .5
-       ],
-       [
-          0, -1, -1,-.5,
-          0,-.6,-.5,-.5,
-          0, .6, .5, .5,
-          0,  1,  1, .5
-       ],
-       [
-          0,  0,   0,  0,
-          0,  1, 1.3, .7,
-          0,  1, 1.3, .7,
-          0,  0,   0,  0
-       ]
-    ];
-    let eyeBackP = frontToBack(eyeFrontP);
-    let mouthFrontP = [
-       [
-        .07, .1, .3, .5,
-        .07,  0,-.1,-.4,
-        .07,  0,-.1,-.4,
-        .07, .1, .3, .5
-       ],
-       [
-         0,-.3,-.5,-.5,
-         0,-.3,-.5,-.5,
-         0, .3, .5, .5,
-         0, .3, .5, .5
-       ],
-       [
-        .54, .54, .3,  0,
-        .54, .54, .3,  0,
-        .54, .54, .3,  0,
-        .54, .54, .3,  0
-       ]
-    ];
-    let mouthBackP = frontToBack(mouthFrontP);
-    
-    let toothFrontP = [
-       [
-         0, 0, 0, 0,
-         -.05,-.05/3,.05/3, .05,
-         -.1,-.1/3,.1/3, .1,
-         -.15, -.05, .05, .15
-       ],
-       [
-         -1, -1, -1, -1,
-        -1/3,-1/3,-1/3,-1/3,
-         1/3, 1/3, 1/3, 1/3,
-          1,  1,  1,  1
-       ],
-       [
-          0,  0,   0,  0,
-          0, .2/3,.2/3,  0,
-          0, .4/3,.4/3,  0,
-          0, .2,  .2,  0
-       ]
-    ];
-    let toothBackP = frontToBack(toothFrontP);
-
-
-    let eyeFront = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, eyeFrontP)
-    );
-    let eyeBack = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, eyeBackP)
-    );
-    let mouthFront = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, mouthFrontP)
-    );
-    let mouthBack = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, mouthBackP)
-    );
-    let toothFront = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, toothFrontP)
-    );
-    let toothBack = createMeshVertices(32, 32, uvToCubicPatch,
-       toCubicPatchCoefficients(BezierBasisMatrix, toothBackP)
-    );
-
-    // m.save();
-    // m.translate(0,0,-3.5);
-    // drawShape([0,0,1], gl.TRIANGLE_STRIP, hermiteCurveVertices);
-    // m.restore();
-
-    // m.save();
-    // m.translate(0,0,-3);
-    // drawShape([1,0,1], gl.TRIANGLE_STRIP, bezierCurveVertices);
-    // m.restore();
-
-    m.save();
-    m.translate(0,0,-4);
-      /////// eye ball ///////
+      // eye ball //
       m.save();
+      let eyeFrontP = [
+         [
+           -1, -1, .2, .5,
+           -1,-.9,-.3,-.1,
+           -1,-.9,-.3,-.1,
+           -1, -1, .2, .5
+         ],
+         [
+            0, -1, -1,-.5,
+            0,-.6,-.5,-.5,
+            0, .6, .5, .5,
+            0,  1,  1, .5
+         ],
+         [
+            0,  0,   0,  0,
+            0,  1, 1.3, .7,
+            0,  1, 1.3, .7,
+            0,  0,   0,  0
+         ]
+      ];
+      let eyeBackP = frontToBack(eyeFrontP);
+      let eyeFront = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, eyeFrontP)
+      );
+      let eyeBack = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, eyeBackP)
+      );
+
       m.scale(.6,.6,.6);
       drawShape([1,1,1], gl.TRIANGLE_STRIP, eyeFront);
       drawShape([1,1,1], gl.TRIANGLE_STRIP, eyeBack);
       
-      /////// mouth ///////
+      // mouth //
+      let mouthFrontP = [
+         [
+          .07, .1, .3, .5,
+          .07,  0,-.1,-.4,
+          .07,  0,-.1,-.4,
+          .07, .1, .3, .5
+         ],
+         [
+           0,-.3,-.5,-.5,
+           0,-.3,-.5,-.5,
+           0, .3, .5, .5,
+           0, .3, .5, .5
+         ],
+         [
+          .54, .54, .3,  0,
+          .54, .54, .3,  0,
+          .54, .54, .3,  0,
+          .54, .54, .3,  0
+         ]
+      ];
+      let mouthBackP = frontToBack(mouthFrontP);
+      let mouthFront = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, mouthFrontP)
+      );
+      let mouthBack = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, mouthBackP)
+      );
+
       let mouthColor = [.8,.07,.08]
       drawShape(mouthColor, gl.TRIANGLE_STRIP, mouthFront);
       drawShape(mouthColor, gl.TRIANGLE_STRIP, mouthBack);
       m.restore();
     
-      /////// teeth ///////
+      // tooth //
+      let toothFrontP = [
+         [
+           0, 0, 0, 0,
+           -.05,-.05/3,.05/3, .05,
+           -.1,-.1/3,.1/3, .1,
+           -.15, -.05, .05, .15
+         ],
+         [
+           -1, -1, -1, -1,
+          -1/3,-1/3,-1/3,-1/3,
+           1/3, 1/3, 1/3, 1/3,
+            1,  1,  1,  1
+         ],
+         [
+            0,  0,   0,  0,
+            0, .2/3,.2/3,  0,
+            0, .4/3,.4/3,  0,
+            0, .2,  .2,  0
+         ]
+      ];
+      let toothBackP = frontToBack(toothFrontP);
+      let toothFront = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, toothFrontP)
+      );
+      let toothBack = createMeshVertices(32, 32, uvToCubicPatch,
+         toCubicPatchCoefficients(BezierBasisMatrix, toothBackP)
+      );
+      
       let toothColor = [.18, .13, 0.05];
       for (let updown = -1; updown <= 1; updown += 2) {
         m.save();
@@ -720,7 +696,7 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
         }
       }
       
-      /////// blood vines ///////
+      // blood vines //
       let bloodVinesFrontP = [];
       bloodVinesFrontP[0] = [
         [ -.6, -.5, 0,  0.09], // A.x B.x C.x D.x
@@ -884,11 +860,10 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       }
       m.restore();
       
-      /////// tails ///////
+      // tails //
       let tailsFrontP = [];
       let c = Math.cos(7 *state.time);
       let s = c > .5 ? .8 : (c < -.5 ? -.4 : .4);
-      // s = 1;
       tailsFrontP[0] = [
         [ -.53, -.62, -.65, -.7], // A.x B.x C.x D.x
         [   0, .05*s,  .05*s,   0], // A.y B.y C.y D.y
@@ -911,7 +886,6 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
       ];
       
       let tailColor = [.5, .02, .03];
-      
       for (let theta = - Math.PI/3; theta < Math.PI/3; theta += Math.PI/7) {
         m.save();
         m.rotateZ(theta);
@@ -945,7 +919,6 @@ function onDraw(t, projMat, viewMat, state, eyeIdx) {
         }
         m.restore();
       }
-      
       
     m.restore();
 }
